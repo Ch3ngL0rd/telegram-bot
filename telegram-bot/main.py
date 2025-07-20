@@ -1,4 +1,5 @@
 import os
+from generated.telegram_message_pb2 import RawMessageV1, FilePointer, MediaKind
 
 from dotenv import load_dotenv
 from telegram import Update
