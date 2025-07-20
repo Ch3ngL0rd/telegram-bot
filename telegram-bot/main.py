@@ -1,11 +1,13 @@
 import os
-from generated.telegram_message_pb2 import RawMessageV1, FilePointer, MediaKind
+import proto_stubs.telegram_message_pb2 as telegram_message_pb2
 
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import (
     Application, MessageHandler, filters, CommandHandler, ContextTypes
 )
+
+print(telegram_message_pb2.RawMessageV1)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Hello! I'm ZacTelegramBot. Voice, images and text are accepted.")
