@@ -28,11 +28,11 @@ jobs:
           cache: 'pip'
 
       - name: Install betterproto via pipx
-        uses: threeal/pipx-install-action@v2.0.0
+        uses: liskin/gh-pipx@v1
         with:
           packages: betterproto
 
-      - name: Generate betterproto Python bindings
+      - name: Generate betterproto stubs
         run: |
           mkdir -p telegram-bot/proto_stubs
           betterproto --python_out=telegram-bot/proto_stubs proto/*.proto
