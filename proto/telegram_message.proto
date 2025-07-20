@@ -3,24 +3,28 @@ package bot.events;
 
 import "google/protobuf/timestamp.proto";
 
-enum MediaKind   { TEXT = 0;  PHOTO = 1;  VOICE = 2; }
+enum MediaKind {
+  TEXT = 0;
+  // PHOTO = 1;
+  // VOICE = 2;
+}
 
 message FilePointer {
-  string storage = 1;   // "s3" | "minio"
-  string bucket  = 2;
-  string key     = 3;
-  string mime    = 4;
-  uint64 size    = 5;
+  string storage = 1; // "s3" | "minio"
+  string bucket = 2;
+  string key = 3;
+  string mime = 4;
+  uint64 size = 5;
 }
 
 message RawMessageV1 {
-  string  event_id  = 1;
+  string event_id = 1;
   google.protobuf.Timestamp ts = 2;
 
-  uint64 chat_id    = 3;
-  uint64 user_id    = 4;
+  uint64 chat_id = 3;
+  uint64 user_id = 4;
 
-  MediaKind kind    = 5;
-  string    text    = 6;           // if kind == TEXT
-  FilePointer file  = 7;           // if PHOTO / VOICE
+  MediaKind kind = 5;
+  string text = 6;      // if kind == TEXT
+  FilePointer file = 7; // if PHOTO / VOICE
 }
