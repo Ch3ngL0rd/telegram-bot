@@ -1,0 +1,13 @@
+# Python / virtualenv
+.env
+.env.*
+.venv/
+
+# macOS Finder
+.DS_Store
+
+# VS Code local settings
+.vscode/*
+
+# System caches
+.cache/
