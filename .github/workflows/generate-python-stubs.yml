@@ -50,8 +50,8 @@ jobs:
       - name: Generate betterproto Python bindings (in telegram-bot/proto_stubs/)
         run: |
           mkdir -p telegram-bot/proto_stubs
-          python -m betterproto.compile_proto --python_out=telegram-bot/proto_stubs proto/*.proto
-
+          python -m betterproto --python_out=telegram-bot/proto_stubs proto/*.proto
+          
       - name: Ensure __init__.py exists
         run: |
           touch telegram-bot/__init__.py
