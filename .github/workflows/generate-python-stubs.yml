@@ -1,0 +1,55 @@
+# .github/workflows/generate-python-stubs.yml
+name: Generate Python gRPC stubs
+
+on:
+  push:
+    paths:
+      - '**.proto'
+      - '.github/workflows/generate-python-stubs.yml'
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install protoc compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+
+      - name: Install Python protobuf tooling
+        run: |
+          python -m pip install --upgrade pip grpcio-tools
+
+      - name: Generate Python bindings
+        run: |
+          mkdir -p generated
+          for proto in $(find . -name '*.proto'); do
+            python -m grpc_tools.protoc \
+              -I . \
+              --python_out=generated \
+              --grpc_python_out=generated \
+              "$proto"
+          done
+
+      - name: Upload generated bindings
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-proto-bindings
+          path: generated
+
+      # Uncomment this section if you want the generated files to be pushed back to the repo
+      # - name: Commit generated bindings
+      #   uses: EndBug/add-and-commit@v9
+      #   with:
+      #     add: 'generated/*'
+      #     message: 'chore: auto‑generate Python protobuf bindings'
+      #     author_name: GitHub Actions
+      #     author_email: actions@github.com
