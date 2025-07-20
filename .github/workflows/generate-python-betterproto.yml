@@ -28,13 +28,12 @@ jobs:
           cache: 'pip'
 
       - name: Install betterproto
-        run: python -m pip install --upgrade pip betterproto
+        run: python -m pip install --user --upgrade pip betterproto
 
       - name: Generate betterproto stubs
         run: |
           mkdir -p telegram-bot/proto_stubs
-          export PATH="$PATH:$(python -m site --user-base)/bin"
-          ~/.local/bin/betterproto --python_out=telegram-bot/proto_stubs proto/*.proto || \
+          export PATH="$PATH:$HOME/.local/bin"
           betterproto --python_out=telegram-bot/proto_stubs proto/*.proto
 
       - name: Ensure __init__.py exists
