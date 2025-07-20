@@ -1,5 +1,5 @@
 # .github/workflows/generate-python-stubs.yml
-name: Generate Python gRPC stubs (telegram-bot dir)
+name: Generate Python betterproto stubs
 
 on:
   push:
@@ -43,24 +43,16 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
 
-      - name: Install protoc
-        uses: arduino/setup-protoc@v3
-        with:
-          version: '24.x'
-
-      - name: Install Python protobuf tooling
+      - name: Install betterproto
         run: |
-          python -m pip install --upgrade pip grpcio-tools
+          python -m pip install --upgrade pip betterproto
 
-      - name: Generate Python bindings (in telegram-bot/proto_stubs/)
+      - name: Generate betterproto Python bindings (in telegram-bot/proto_stubs/)
         run: |
           mkdir -p telegram-bot/proto_stubs
-          find ./proto -name '*.proto' -print0 | \
-            xargs -0 -I{} python -m grpc_tools.protoc \
-              -I ./proto \
-              --python_out=telegram-bot/proto_stubs \
-              --grpc_python_out=telegram-bot/proto_stubs \
-              {}
+          for f in proto/*.proto; do
+            python -m betterproto.compile --python_out=telegram-bot/proto_stubs "$f"
+          done
 
       - name: Ensure __init__.py exists
         run: |
@@ -77,7 +69,7 @@ jobs:
       - name: Commit generated bindings
         uses: EndBug/add-and-commit@v9
         with:
-          add: 'telegram-bot/*_pb2*.py'
-          message: 'chore: auto-generate Python protobuf bindings'
+          add: 'telegram-bot/proto_stubs/*.py'
+          message: 'chore: auto-generate Python betterproto stubs'
           author_name: GitHub Actions
           author_email: actions@github.com
