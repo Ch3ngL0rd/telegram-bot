@@ -1,0 +1,42 @@
+name: Proto codegen
+
+on:
+  push:
+    paths:
+      - "proto/**"
+      - ".github/workflows/proto-gen.yml"
+      - "tools/proto-toolchain/**"
+  pull_request:
+    paths:
+      - "proto/**"
+      - ".github/workflows/proto-gen.yml"
+      - "tools/proto-toolchain/**"
+
+jobs:
+  generate-proto:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build proto toolchain image
+        run: |
+          docker build --platform=linux/amd64 -t my-proto-toolchain ./tools/proto-toolchain
+
+      - name: Generate Python bindings
+        run: |
+          docker run --rm --platform=linux/amd64 \
+            -v "$PWD":/workspace \
+            -w /workspace \
+            my-proto-toolchain \
+            protoc -I proto --python_out=telegram-bot/src proto/telegram_message.proto
+
+      - name: Commit and push generated code (if needed)
+        env:
+          # Use GitHub Actions token for push
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "github-actions"
+          git add telegram-bot/src/*_pb2.py
+          git diff --cached --quiet || (git commit -m "chore(proto): auto-generate python bindings" && \
+            git push origin HEAD:${{ github.head_ref || github.ref_name }})
