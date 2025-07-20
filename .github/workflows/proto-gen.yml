@@ -19,8 +19,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build proto toolchain image
-        run: |
-          docker build -t my-proto-toolchain ./tools/proto-toolchain
+        run: docker build -t my-proto-toolchain ./tools/proto-toolchain
 
       - name: Generate Python bindings
         run: |
