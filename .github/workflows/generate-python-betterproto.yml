@@ -21,20 +21,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: 'pip'
+      - name: Install uv
+        run: pip install uv
 
-      - name: Install betterproto
-        run: python -m pip install --user --upgrade pip betterproto
+      - name: Set up venv and install betterproto
+        run: |
+          uv venv .venv
+          source .venv/bin/activate
+          uv pip install betterproto
 
       - name: Generate betterproto stubs
         run: |
+          source .venv/bin/activate
           mkdir -p telegram-bot/proto_stubs
-          export PATH="$PATH:$HOME/.local/bin"
-          betterproto --python_out=telegram-bot/proto_stubs proto/*.proto
+          .venv/bin/betterproto --python_out=telegram-bot/proto_stubs proto/*.proto
 
       - name: Ensure __init__.py exists
         run: |
