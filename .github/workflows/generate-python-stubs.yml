@@ -13,6 +13,9 @@ on:
       - '.github/workflows/generate-python-stubs.yml'
   workflow_dispatch:
 
+permissions:
+  contents: write
+  
 jobs:
   changes:
     runs-on: ubuntu-latest
