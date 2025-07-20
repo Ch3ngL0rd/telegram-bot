@@ -1,29 +1,49 @@
 # .github/workflows/generate-python-stubs.yml
-name: Generate Python gRPC stubs
+name: Generate Python gRPC stubs (fast)
 
 on:
   push:
-    paths:
-      - '**.proto'
-      - '.github/workflows/generate-python-stubs.yml'
     branches: [ main ]
+    paths:
+      - 'proto/**/*.proto'
+      - '.github/workflows/generate-python-stubs.yml'
+  pull_request:
+    paths:
+      - 'proto/**/*.proto'
+      - '.github/workflows/generate-python-stubs.yml'
   workflow_dispatch:
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      proto: ${{ steps.filter.outputs.proto }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            proto:
+              - 'proto/**/*.proto'
+
   build:
+    needs: changes
+    if: needs.changes.outputs.proto == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
 
-      - name: Install protoc compiler
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
+      - name: Install protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: '24.x'
 
       - name: Install Python protobuf tooling
         run: |
@@ -32,13 +52,12 @@ jobs:
       - name: Generate Python bindings
         run: |
           mkdir -p generated
-          for proto in $(find . -name '*.proto'); do
-            python -m grpc_tools.protoc \
-              -I . \
+          find ./proto -name '*.proto' -print0 | \
+            xargs -0 -I{} python -m grpc_tools.protoc \
+              -I ./proto \
               --python_out=generated \
               --grpc_python_out=generated \
-              "$proto"
-          done
+              {}
 
       - name: Upload generated bindings
         uses: actions/upload-artifact@v4
@@ -46,11 +65,10 @@ jobs:
           name: python-proto-bindings
           path: generated
 
-      # Uncomment this section if you want the generated files to be pushed back to the repo
-      # - name: Commit generated bindings
-      #   uses: EndBug/add-and-commit@v9
-      #   with:
-      #     add: 'generated/*'
-      #     message: 'chore: auto‑generate Python protobuf bindings'
-      #     author_name: GitHub Actions
-      #     author_email: actions@github.com
+      - name: Commit generated bindings
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'generated/*'
+          message: 'chore: auto-generate Python protobuf bindings'
+          author_name: GitHub Actions
+          author_email: actions@github.com
