@@ -5,8 +5,8 @@ import "google/protobuf/timestamp.proto";
 
 enum MediaKind {
   TEXT = 0;
-  // PHOTO = 1;
-  // VOICE = 2;
+  PHOTO = 1;
+  VOICE = 2;
 }
 
 message FilePointer {

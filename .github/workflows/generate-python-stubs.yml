@@ -7,6 +7,7 @@ on:
       - '**.proto'
       - '.github/workflows/generate-python-stubs.yml'
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
