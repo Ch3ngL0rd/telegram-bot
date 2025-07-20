@@ -12,7 +12,7 @@ on:
       - 'proto/**/*.proto'
       - '.github/workflows/generate-python-stubs.yml'
   workflow_dispatch:
-
+    
 permissions:
   contents: write
 
