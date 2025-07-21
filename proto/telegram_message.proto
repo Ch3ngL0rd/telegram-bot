@@ -17,7 +17,7 @@ message FilePointer {
   uint64 size = 5;
 }
 
-message RawMessageV1 {
+message TelegramMessageV1 {
   string event_id = 1;
   google.protobuf.Timestamp ts = 2;
 
