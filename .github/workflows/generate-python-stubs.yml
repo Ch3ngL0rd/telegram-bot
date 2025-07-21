@@ -60,6 +60,7 @@ jobs:
               -I ./proto \
               --python_out=telegram-bot/proto_stubs \
               --grpc_python_out=telegram-bot/proto_stubs \
+              --pyi_out=telegram-bot/proto_stubs \
               {}
 
       - name: Ensure __init__.py exists
@@ -77,7 +78,7 @@ jobs:
       - name: Commit generated bindings
         uses: EndBug/add-and-commit@v9
         with:
-          add: 'telegram-bot/*_pb2*.py'
-          message: 'chore: auto-generate Python protobuf bindings'
+          add: 'telegram-bot/proto_stubs/*_pb2*.py*'
+          message: 'chore: auto-generate Python protobuf bindings (+types)'
           author_name: GitHub Actions
           author_email: actions@github.com
