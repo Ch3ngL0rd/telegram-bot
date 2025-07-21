@@ -69,7 +69,7 @@ async def ingest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await react(update, context)
 
 def generateEventID() -> str:
-    return uuid.uuid4()
+    return str(uuid.uuid4())
 
 def main():
     load_dotenv()
