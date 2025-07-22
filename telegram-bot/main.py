@@ -1,6 +1,8 @@
+
 import os
 import openai
 import logging
+import asyncio
 
 from dotenv import load_dotenv
 from telegram import ReactionTypeEmoji, Update, constants
@@ -15,13 +17,6 @@ from telegram.ext import (
 import workout
 import uuid
 from proto_stubs import telegram_message_pb2
-
-# Different ways to measure exercise:
-# reps (kg optional, )
-# time based - seconds, minutes + (distance
-
-
-
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s"
@@ -60,16 +55,19 @@ async def ingest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         chat_id=update.message.chat_id,
         user_id=update.effective_user.id,
         kind=telegram_message_pb2.MediaKind.TEXT,
-        text = update.message.text
+        text=update.message.text,
     )
 
     response = wh.handleTelegramMessage(message)
 
+    asyncio.create_task(react(update, context))
     await update.message.reply_text(response)
-    await react(update, context)
+    
+
 
 def generateEventID() -> str:
     return str(uuid.uuid4())
+
 
 def main():
     load_dotenv()
