@@ -1,9 +1,9 @@
 import logging
 import openai
 
-from typing import Union, Literal, Optional
-from pydantic import BaseModel, Field
 from proto_stubs import telegram_message_pb2
+from storage import JsonlWorkoutStore
+from exercise import ExerciseEntry
 
 # Exercises I want to record
 # - Reps - bench press 5x5 80kg, 8 chin-ups, 10 push-ups
@@ -20,37 +20,23 @@ EXERCISE_NAMES = [
     "Farmer's Carry",
 ]
 
-
-class ExerciseEntry(BaseModel):
-    exerciseName: str
-    type: Literal["reps", "duration"]
-    reps: Optional[int] = None
-    durationInSeconds: Optional[float] = None
-    weightInKilograms: Optional[float] = None
-    distanceInMeters: Optional[float] = None
-    repsInReserve: Optional[int] = None
-    notes: Optional[str] = None
-
-
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s"
 )
 logger = logging.getLogger(__name__)
 
-
 class WorkoutHandler:
-    def __init__(self, OpenAIKey: str):
+    def __init__(self, OpenAIKey: str, store: JsonlWorkoutStore):
         self.client = openai.OpenAI(api_key=OpenAIKey)
         self.MODEL = "gpt-4o-mini"
+        self.store = store
 
     def handleTelegramMessage(
         self, message: telegram_message_pb2.TelegramMessageV1
     ) -> str:
         exercise = self.__extractExercise(message=message.text)
         logger.info(f"Message: {message}. Exercise is {exercise}")
-        # Write the exercise to a log
-        with open("workout_log.txt", "a") as f:
-            f.write(f"{message.event_id} | {exercise}\n")
+        self.store.write(message=message, entry=exercise)
         return f"{exercise}"
 
     def __extractExercise(self, message: str) -> ExerciseEntry:

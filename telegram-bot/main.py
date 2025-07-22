@@ -17,6 +17,7 @@ from telegram.ext import (
 import workout
 import uuid
 from proto_stubs import telegram_message_pb2
+from storage import JsonlWorkoutStore
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s"
@@ -42,7 +43,8 @@ async def react(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def ingest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     openai_key = os.getenv("OPENAI_KEY")
-    wh = workout.WorkoutHandler(openai_key)
+    store = JsonlWorkoutStore("workouts.jsonl")
+    wh = workout.WorkoutHandler(openai_key, store)
     user = update.effective_user.id if update.effective_user else "unknown"
     if not update.message.text:
         logger.info("Received non-text message from user %s", user)
@@ -57,6 +59,7 @@ async def ingest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         kind=telegram_message_pb2.MediaKind.TEXT,
         text=update.message.text,
     )
+    message.ts.GetCurrentTime()
 
     response = wh.handleTelegramMessage(message)
 
