@@ -67,7 +67,8 @@ async def ingest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     classification = classifyMessage(message.text, openai_key)
     if classification.isWorkoutMessage:
         response = workoutHandler.handleTelegramMessage(message)
-        await update.message.reply_text(response)
+        human_readable_response = generateHumanReadableMessageType(response, openai_key)
+        await update.message.reply_text(human_readable_response)
     elif classification.isWeightMessage:
         response = weightHandler.handleWeightMessage(message)
         await update.message.reply_text(response)
@@ -87,6 +88,39 @@ class MessageType(BaseModel):
     isWorkoutMessage: bool
     isWeightMessage: bool
 
+def generateHumanReadableMessageType(response: str, openai_key: str) -> str:
+    """
+    Generates a human-readable message type based on the response from OpenAI.
+    The response may be a json dump or model dump.
+    """
+    client = openai.OpenAI(api_key=openai_key)
+    system_prompt = """
+        You are a helper that transforms a response into a human-friendly format.
+        The response may be a json dump or model dump.
+        Examples:
+        Input="[ExerciseEntry(exerciseName='Pull-Up', type='reps', reps=45, durationInSeconds=None, weightInKilograms=None, distanceInMeters=None, repsInReserve=None, notes=None)]"
+        Input="[ExerciseEntry(exerciseName='Running', type='duration', reps=None, durationInSeconds=649.0, weightInKilograms=None, distanceInMeters=1830.0, repsInReserve=None, notes=None)]"
+
+        Return the response in a human-friendly format. Disregard null values.
+    """
+    resp = client.responses.parse(
+        model="gpt-4o-mini",
+        input=[
+            {
+                "role": "system",
+                "content": system_prompt,
+            },
+            {
+                "role": "user",
+                "content": response,
+            },
+        ],
+        text_format=str,
+        temperature=0.0,
+    )
+    if resp.error:
+        raise Exception(resp.error)
+    return resp.output_parsed
 
 def classifyMessage(message: str, openai_key: str) -> Dict[str, bool]:
     """

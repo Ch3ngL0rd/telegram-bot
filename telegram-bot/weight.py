@@ -15,6 +15,7 @@ class WeightHandler:
     def __init__(self, openai_key: str, weight_store: storage.JsonlWeightStore):
         self.client = openai.OpenAI(api_key=openai_key)
         self.MODEL = "gpt-4o-mini"
+        self.weight_store = weight_store
 
     def handleWeightMessage(
         self, message: telegram_message_pb2.TelegramMessageV1
@@ -23,6 +24,7 @@ class WeightHandler:
         if message.ts:
             weight.ts = message.ts.ToJsonString()
         logger.info(f"Message: {message}. Weight details are {weight}")
+        self.weight_store.write(message, weight)
         return f"Weight logged: {weight.weightInKilograms} kg"
 
     def __extractWeightDetails(self, message: str) -> WeightEntry:
