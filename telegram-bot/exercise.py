@@ -11,3 +11,6 @@ class ExerciseEntry(BaseModel):
     distanceInMeters: Optional[float] = None
     repsInReserve: Optional[int] = None
     notes: Optional[str] = None
+
+class MultipleExerciseEntry(BaseModel):
+    exercises: list[ExerciseEntry]
