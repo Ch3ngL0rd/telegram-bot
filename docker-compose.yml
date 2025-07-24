@@ -1,0 +1,10 @@
+version: '3.9'
+services:
+  telegram-bot:
+    build:
+      context: ./telegram-bot
+      dockerfile: Dockerfile
+    env_file:
+      - ./telegram-bot/.env
+    volumes:
+      - ./telegram-bot:/app

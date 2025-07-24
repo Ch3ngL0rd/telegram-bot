@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+workouts.jsonl
+weights.jsonl
+.env
+.git

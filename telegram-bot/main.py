@@ -33,10 +33,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 
-async def react(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def react(update: Update, context: ContextTypes.DEFAULT_TYPE, reaction: ReactionTypeEmoji) -> None:
     chat_id = update.effective_chat.id
     msg_id = update.message.message_id
-    reaction = ReactionTypeEmoji(constants.ReactionEmoji.THUMBS_UP)
     await context.bot.set_message_reaction(
         chat_id=chat_id, message_id=msg_id, reaction=[reaction], is_big=False
     )
@@ -72,8 +71,12 @@ async def ingest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     elif classification.isWeightMessage:
         response = weightHandler.handleWeightMessage(message)
         await update.message.reply_text(response)
-
-    await react(update, context)
+    else:
+        await react(update, context, constants.ReactionEmoji.FACE_WITH_ONE_EYEBROW_RAISED)
+        logger.info("Message %s from user %s is not a workout or weight message", update.message.text, user)
+        return
+    
+    await react(update, context, constants.ReactionEmoji.THUMBS_UP)
 
 
 def generateEventID() -> str:
