@@ -12,5 +12,12 @@ class ExerciseEntry(BaseModel):
     repsInReserve: Optional[int] = None
     notes: Optional[str] = None
 
+
 class MultipleExerciseEntry(BaseModel):
     exercises: list[ExerciseEntry]
+
+
+class WeightEntry(BaseModel):
+    weightInKilograms: float
+    ts: Optional[str] = None
+    notes: Optional[str] = None

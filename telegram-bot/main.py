@@ -1,10 +1,12 @@
-
 import os
+from typing import Dict
 import openai
 import logging
 import asyncio
+import storage
 
 from dotenv import load_dotenv
+from pydantic import BaseModel
 from telegram import ReactionTypeEmoji, Update, constants
 from telegram.ext import (
     Application,
@@ -15,9 +17,9 @@ from telegram.ext import (
 )
 
 import workout
+import weight
 import uuid
 from proto_stubs import telegram_message_pb2
-from storage import JsonlWorkoutStore
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s"
@@ -43,8 +45,11 @@ async def react(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def ingest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     openai_key = os.getenv("OPENAI_KEY")
-    store = JsonlWorkoutStore("workouts.jsonl")
-    wh = workout.WorkoutHandler(openai_key, store)
+    workoutStore = storage.JsonlWorkoutStore("workouts.jsonl")
+    workoutHandler = workout.WorkoutHandler(openai_key, workoutStore)
+    weightStore = storage.JsonlWeightStore("weights.jsonl")
+    weightHandler = weight.WeightHandler(openai_key, weightStore)
+
     user = update.effective_user.id if update.effective_user else "unknown"
     if not update.message.text:
         logger.info("Received non-text message from user %s", user)
@@ -61,15 +66,61 @@ async def ingest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
     message.ts.GetCurrentTime()
 
-    response = wh.handleTelegramMessage(message)
+    classification = classifyMessage(message.text, openai_key)
+    if classification.isWorkoutMessage:
+        response = workoutHandler.handleTelegramMessage(message)
+        await update.message.reply_text(response)
+    elif classification.isWeightMessage:
+        response = weightHandler.handleWeightMessage(message)
+        await update.message.reply_text(response)
 
-    asyncio.create_task(react(update, context))
-    await update.message.reply_text(response)
-    
+    await react(update, context)
 
 
 def generateEventID() -> str:
     return str(uuid.uuid4())
+
+
+class MessageType(BaseModel):
+    isWorkoutMessage: bool
+    isWeightMessage: bool
+
+
+def classifyMessage(message: str, openai_key: str) -> Dict[str, bool]:
+    """
+    Given a message, makes a call to OpenAI to classify the message.
+    """
+    client = openai.OpenAI(api_key=openai_key)
+    system_prompt = """
+        You are a message classifier bot that helps users determine if a message is related to a workout.
+        You will receive messages from users, and you need to classify them as either a workout message or not.
+        Example messages:
+        - "I did 5 sets of 10 push-ups today" — this is a workout message.
+        - "What is the weather like today?" — this is not a workout message.
+        - "Weigh myself at 70kg" — this is a weight message.
+        MessageTypes are not mutually exclusive.
+        Return the classification in the format of MessageType.
+    """
+    resp = client.responses.parse(
+        model="gpt-4o-mini",
+        input=[
+            {
+                "role": "system",
+                "content": system_prompt,
+            },
+            {
+                "role": "user",
+                "content": message,
+            },
+        ],
+        text_format=MessageType,
+        temperature=0.0,
+    )
+
+    if resp.error:
+        raise Exception(resp.error)
+
+    return resp.output_parsed
 
 
 def main():

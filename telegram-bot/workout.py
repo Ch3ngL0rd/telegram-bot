@@ -22,6 +22,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 class WorkoutHandler:
     def __init__(self, OpenAIKey: str, store: JsonlWorkoutStore):
         self.client = openai.OpenAI(api_key=OpenAIKey)
@@ -38,7 +39,7 @@ class WorkoutHandler:
         return f"{exercises}"
 
     def __extractExercises(self, message: str) -> MultipleExerciseEntry:
-        system_prompt = '''
+        system_prompt = """
             You are a personal trainer bot that helps users log their workouts.
             You will receive messages from users describing their exercises, and you need to extract the relevant details about the exercise.
             For example:
@@ -47,7 +48,7 @@ class WorkoutHandler:
             '30 minutes running' — this is a duration exercise for 30 minutes.
             Return the exercise details in the format of ExerciseEntry.
             The exercise can be of type 'reps' or 'duration'.
-        '''
+        """
 
         resp = self.client.responses.parse(
             model=self.MODEL,
