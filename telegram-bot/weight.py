@@ -1,6 +1,7 @@
 import logging
 import openai
 
+import storage
 from exercise import WeightEntry
 from proto_stubs import telegram_message_pb2
 
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class WeightHandler:
-    def __init__(self, openai_key: str, weight_store: JsonlWorkoutStore):
+    def __init__(self, openai_key: str, weight_store: storage.JsonlWeightStore):
         self.client = openai.OpenAI(api_key=openai_key)
         self.MODEL = "gpt-4o-mini"
 

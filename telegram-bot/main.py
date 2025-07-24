@@ -2,7 +2,6 @@ import os
 from typing import Dict
 import openai
 import logging
-import asyncio
 import storage
 
 from dotenv import load_dotenv
