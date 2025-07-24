@@ -101,9 +101,10 @@ def generateHumanReadableMessageType(response: str, openai_key: str) -> str:
         Input="[ExerciseEntry(exerciseName='Pull-Up', type='reps', reps=45, durationInSeconds=None, weightInKilograms=None, distanceInMeters=None, repsInReserve=None, notes=None)]"
         Input="[ExerciseEntry(exerciseName='Running', type='duration', reps=None, durationInSeconds=649.0, weightInKilograms=None, distanceInMeters=1830.0, repsInReserve=None, notes=None)]"
 
-        Return the response in a human-friendly format. Disregard null values.
+        Return the response in a human-friendly format. Disregard null values. Be concise and clear. Respond with plain text with no additional formatting.
+        Convert units to a human-readable format, e.g., "2190 seconds" -> "36 minutes" (disregard seconds since its negligible).
     """
-    resp = client.responses.parse(
+    resp = client.responses.create(
         model="gpt-4o-mini",
         input=[
             {
@@ -115,12 +116,12 @@ def generateHumanReadableMessageType(response: str, openai_key: str) -> str:
                 "content": response,
             },
         ],
-        text_format=str,
-        temperature=0.0,
     )
     if resp.error:
         raise Exception(resp.error)
-    return resp.output_parsed
+    if not resp.output or not resp.output[0].content:
+        raise ValueError("No content in the response from OpenAI")
+    return resp.output[0].content[0].text.strip()
 
 def classifyMessage(message: str, openai_key: str) -> Dict[str, bool]:
     """
